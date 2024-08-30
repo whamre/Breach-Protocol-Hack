@@ -5,7 +5,7 @@ const timerDiv = document.getElementById('timer');
 const startButton = document.getElementById('start-button');
 const symbolButtons = document.querySelectorAll('.symbol-button');
 
-let currentAlphabet = [];
+let currentAlphabet = '123456789ABCDEF'.split('');
 let sequence = [];
 let currentStep = 0;
 let highlightedRow = 0;
@@ -64,6 +64,34 @@ function createGrid() {
     }
 }
 
+function generateSequence() {
+    sequenceToWin = [];
+    let previousRow = Math.floor(Math.random() * GRID_SIZE);
+    let previousCol = Math.floor(Math.random() * GRID_SIZE);
+    sequenceToWin.push([previousRow, previousCol]);
+
+    for (let i = 1; i < 5; i++) {
+        let row, col;
+        if (i % 2 === 0) {
+            row = Math.floor(Math.random() * GRID_SIZE); 
+            col = previousCol;
+        } else {
+            row = previousRow;
+            col = Math.floor(Math.random() * GRID_SIZE);
+        }
+        sequenceToWin.push([row, col]);
+        previousRow = row;
+        previousCol = col;
+    }
+
+    displaySequence();
+}
+
+function displaySequence() {
+    sequenceContainer.innerHTML = "<strong>Sequence Required:</strong><br>" +
+        sequenceToWin.map(([row, col]) => gridValues[row][col]).join(" | ");
+}
+
 symbolButtons.forEach(button => {
     button.addEventListener('click', () => {
         switch (button.dataset.symbol) {
@@ -84,55 +112,6 @@ symbolButtons.forEach(button => {
         startButton.disabled = false;
     });
 });
-
-function generateSequence(attempt = 1) {
-    if (attempt > MAX_REGENERATE_ATTEMPTS) {
-        console.error('Max sequence regeneration attempts reached. Please restart the game.');
-        return;
-    }
-
-    sequenceToWin = [];
-    let previousRow = Math.floor(Math.random() * GRID_SIZE);
-    let previousCol = Math.floor(Math.random() * GRID_SIZE);
-    sequenceToWin.push([previousRow, previousCol]);
-
-    for (let i = 1; i < 5; i++) {
-        let row, col;
-        if (i % 2 === 0) {
-            row = Math.floor(Math.random() * GRID_SIZE); 
-            col = previousCol;
-        } else {
-            row = previousRow;
-            col = Math.floor(Math.random() * GRID_SIZE);
-        }
-        sequenceToWin.push([row, col]);
-        previousRow = row;
-        previousCol = col;
-    }
-
-    let sequenceValues = sequenceToWin.map(([row, col]) => gridValues[row][col]);
-    let valueCounts = {};
-    for (let value of sequenceValues) {
-        valueCounts[value] = (valueCounts[value] || 0) + 1;
-    }
-
-    for (let value in valueCounts) {
-        if (valueCounts[value] > 1) {
-            let gridOccurrences = gridValues.flat().filter(v => v === value).length;
-            if (gridOccurrences < valueCounts[value]) {
-                console.warn(`Regenerating sequence due to insufficient occurrences in grid (Attempt ${attempt})`);
-                return generateSequence(attempt + 1);
-            }
-        }
-    }
-
-    displaySequence();
-}
-
-function displaySequence() {
-    sequenceContainer.innerHTML = "<strong>Sequence Required:</strong><br>" +
-        sequenceToWin.map(([row, col]) => gridContainer.children[row * GRID_SIZE + col].textContent).join(" | ");
-}
 
 function clearHighlights() {
     document.querySelectorAll('.row-highlight, .col-highlight').forEach(element => {
@@ -224,8 +203,6 @@ function updateTimer() {
 }
 
 function startGame() {
-    initializeGame();
-
     gridContainer.style.display = 'grid';
     document.querySelectorAll('.grid-item').forEach(item => item.classList.remove('hidden'));
 
