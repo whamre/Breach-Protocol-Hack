@@ -3,7 +3,9 @@ const sequenceContainer = document.getElementById('sequence-container');
 const messageDiv = document.getElementById('message');
 const timerDiv = document.getElementById('timer');
 const startButton = document.getElementById('start-button');
-const alphabet = '123456789ABCDEF';
+const symbolButtons = document.querySelectorAll('.symbol-button');
+
+let currentAlphabet = [];
 let sequence = [];
 let currentStep = 0;
 let highlightedRow = 0;
@@ -14,6 +16,29 @@ let sequenceToWin = [];
 let gridValues = [];
 let timer;
 let timeLeft = 20;
+const MAX_REGENERATE_ATTEMPTS = 10;
+
+const alphanumeric = '123456789ABCDEF'.split('');
+const brailleAlphabet = [
+    '⠁', '⠂', '⠃', '⠄', '⠅', '⠆', '⠇', '⠈',
+    '⠉', '⠊', '⠋', '⠌', '⠍', '⠎', '⠏', '⠐',
+    '⠑', '⠒', '⠓', '⠔', '⠕', '⠖', '⠗', '⠘',
+    '⠙', '⠚', '⠛', '⠜', '⠝', '⠞', '⠟', '⠠',
+    '⠡', '⠢', '⠣', '⠤', '⠥', '⠦', '⠧', '⠨',
+    '⠩', '⠪', '⠫', '⠬', '⠭', '⠮', '⠯', '⠰'
+];
+const runesAlphabet = [
+    'ᚠ', 'ᚢ', 'ᚦ', 'ᚨ', 'ᚱ', 'ᚲ', 'ᚷ', 'ᚹ',
+    'ᚺ', 'ᚾ', 'ᛁ', 'ᛃ', 'ᛇ', 'ᛈ', 'ᛉ', 'ᛋ',
+    'ᛏ', 'ᛒ', 'ᛖ', 'ᛗ', 'ᛚ', 'ᛜ', 'ᛟ', 'ᛞ',
+    'ᚪ', 'ᚫ', 'ᚬ', 'ᚭ', 'ᚮ', 'ᚯ', 'ᚱ', 'ᛁ'
+];
+const symbolsAlphabet = [
+    '☀', '☁', '☂', '☃', '☄', '★', '☉', '☊',
+    '☋', '☌', '☍', '☎', '☏', '☐', '☑', '☒',
+    '☓', '☠', '☡', '☢', '☣', '☤', '☥', '☦',
+    '☧', '☨', '☩', '☪', '☫', '☬', '☭', '☮'
+];
 
 function createGrid() {
     gridContainer.innerHTML = '';
@@ -26,17 +51,44 @@ function createGrid() {
             div.classList.add('grid-item');
             div.dataset.row = row;
             div.dataset.col = col;
-            let value = alphabet[Math.floor(Math.random() * alphabet.length)] + alphabet[Math.floor(Math.random() * alphabet.length)];
-            div.textContent = value;
+            let value1 = currentAlphabet[Math.floor(Math.random() * currentAlphabet.length)];
+            let value2 = currentAlphabet[Math.floor(Math.random() * currentAlphabet.length)];
+            div.textContent = value1 + value2;
             div.classList.add('hidden');
             gridContainer.appendChild(div);
-            rowValues.push(value);
+            rowValues.push(value1 + value2);
         }
         gridValues.push(rowValues);
     }
 }
 
-function generateSequence() {
+symbolButtons.forEach(button => {
+    button.addEventListener('click', () => {
+        switch (button.dataset.symbol) {
+            case 'alphanumeric':
+                currentAlphabet = alphanumeric;
+                break;
+            case 'braille':
+                currentAlphabet = brailleAlphabet;
+                break;
+            case 'runes':
+                currentAlphabet = runesAlphabet;
+                break;
+            case 'symbols':
+                currentAlphabet = symbolsAlphabet;
+                break;
+        }
+        initializeGame();
+        startButton.disabled = false;
+    });
+});
+
+function generateSequence(attempt = 1) {
+    if (attempt > MAX_REGENERATE_ATTEMPTS) {
+        console.error('Max sequence regeneration attempts reached. Please restart the game.');
+        return;
+    }
+
     sequenceToWin = [];
     let previousRow = Math.floor(Math.random() * 6);
     let previousCol = Math.floor(Math.random() * 6);
@@ -66,8 +118,8 @@ function generateSequence() {
         if (valueCounts[value] > 1) {
             let gridOccurrences = gridValues.flat().filter(v => v === value).length;
             if (gridOccurrences < valueCounts[value]) {
-                generateSequence();
-                return;
+                console.warn(`Regenerating sequence due to insufficient occurrences in grid (Attempt ${attempt})`);
+                return generateSequence(attempt + 1);
             }
         }
     }

@@ -7,12 +7,18 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
+    <div id="symbol-selector">
+        <button class="symbol-button" data-symbol="alphanumeric">Alphanumeric</button>
+        <button class="symbol-button" data-symbol="braille">Braille</button>
+        <button class="symbol-button" data-symbol="runes">Runes</button>
+        <button class="symbol-button" data-symbol="symbols">Symbols</button>
+    </div>
+    <div id="timer"></div>
+    <div class="main-container">
         <div id="grid-container" class="hidden"></div>
         <div id="sequence-container"></div>
     </div>
-    <div id="timer"></div>
-    <button id="start-button">Start Game</button>
+    <button id="start-button" disabled>Start Game</button>
     <div id="message"></div>
     <script src="script.js"></script>
 </body>
