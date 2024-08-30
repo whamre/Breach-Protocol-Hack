@@ -1,146 +1,185 @@
-document.addEventListener("DOMContentLoaded", function() {
-    const matrixSize = 4;
-    const codes = ["55", "1C", "BD", "E9"];
-    const sequenceLength = 4;
-    let buffer = [];
-    let codeMatrix = [];
-    let requiredSequence = [];
+const gridContainer = document.getElementById('grid-container');
+const sequenceContainer = document.getElementById('sequence-container');
+const messageDiv = document.getElementById('message');
+const timerDiv = document.getElementById('timer');
+const startButton = document.getElementById('start-button');
+const alphabet = '123456789ABCDEF';
+let sequence = [];
+let currentStep = 0;
+let highlightedRow = 0;
+let highlightedCol = 0;
+let canMoveVertically = true;
+let canMoveHorizontally = false;
+let sequenceToWin = [];
+let gridValues = [];
+let timer;
+let timeLeft = 20;
 
-    let currentRow = 0;
-    let currentCol = 0;
-    let isVertical = false;
+function createGrid() {
+    gridContainer.innerHTML = '';
+    gridValues = [];
 
-    const matrixElement = document.getElementById("codeMatrix");
-    const bufferElement = document.getElementById("buffer");
-    const sequenceElement = document.getElementById("sequence");
-
-    function generateRandomSequence() {
-        requiredSequence = [];
-        for (let i = 0; i < sequenceLength; i++) {
-            let randomCode = codes[Math.floor(Math.random() * codes.length)];
-            requiredSequence.push(randomCode);
+    for (let row = 0; row < 6; row++) {
+        let rowValues = [];
+        for (let col = 0; col < 6; col++) {
+            const div = document.createElement('div');
+            div.classList.add('grid-item');
+            div.dataset.row = row;
+            div.dataset.col = col;
+            let value = alphabet[Math.floor(Math.random() * alphabet.length)] + alphabet[Math.floor(Math.random() * alphabet.length)];
+            div.textContent = value;
+            div.classList.add('hidden');
+            gridContainer.appendChild(div);
+            rowValues.push(value);
         }
-        sequenceElement.textContent = requiredSequence.join(" ");
+        gridValues.push(rowValues);
     }
+}
 
-    function generateSolvableMatrix() {
-        codeMatrix = [];
-        for (let i = 0; i < matrixSize; i++) {
-            let row = [];
-            for (let j = 0; j < matrixSize; j++) {
-                let randomCode = codes[Math.floor(Math.random() * codes.length)];
-                row.push(randomCode);
-            }
-            codeMatrix.push(row);
-        }
+function generateSequence() {
+    sequenceToWin = [];
+    let previousRow = Math.floor(Math.random() * 6);
+    let previousCol = Math.floor(Math.random() * 6);
+    sequenceToWin.push([previousRow, previousCol]);
 
-        let row = 0;
-        let col = Math.floor(Math.random() * matrixSize);
-
-        for (let i = 0; i < sequenceLength; i++) {
-            codeMatrix[row][col] = requiredSequence[i];
-            if (i % 2 === 0 && row < matrixSize - 1) {
-                row++;
-            } else if (col < matrixSize - 1) {
-                col++;
-            }
-        }
-    }
-
-    function createMatrix() {
-        matrixElement.innerHTML = "";
-        codeMatrix.forEach((row, rowIndex) => {
-            const tr = document.createElement("tr");
-            row.forEach((code, colIndex) => {
-                const td = document.createElement("td");
-                td.textContent = code;
-                td.dataset.row = rowIndex;
-                td.dataset.col = colIndex;
-                tr.appendChild(td);
-            });
-            matrixElement.appendChild(tr);
-        });
-        highlightCurrentCell();
-    }
-
-    function highlightCurrentCell() {
-        document.querySelectorAll("td").forEach(cell => {
-            cell.classList.remove("highlighted");
-        });
-        const currentCell = matrixElement.querySelector(`td[data-row="${currentRow}"][data-col="${currentCol}"]`);
-        if (currentCell) {
-            currentCell.classList.add("highlighted");
-        }
-    }
-
-    function handleKeyPress(event) {
-        switch (event.key) {
-            case "ArrowRight":
-                if (!isVertical && currentCol < matrixSize - 1) {
-                    currentCol++;
-                }
-                break;
-            case "ArrowLeft":
-                if (!isVertical && currentCol > 0) {
-                    currentCol--;
-                }
-                break;
-            case "ArrowDown":
-                if (isVertical && currentRow < matrixSize - 1) {
-                    currentRow++;
-                }
-                break;
-            case "ArrowUp":
-                if (isVertical && currentRow > 0) {
-                    currentRow--;
-                }
-                break;
-            case "Enter":
-                handleCodeClick(codeMatrix[currentRow][currentCol]);
-                isVertical = !isVertical;
-                break;
-        }
-        highlightCurrentCell();
-    }
-
-    function handleCodeClick(code) {
-        buffer.push(code);
-        updateBufferDisplay();
-        if (buffer.length === requiredSequence.length) {
-            checkSequence();
-        }
-    }
-
-    function updateBufferDisplay() {
-        bufferElement.innerHTML = "";
-        buffer.forEach(code => {
-            const div = document.createElement("div");
-            div.textContent = code;
-            bufferElement.appendChild(div);
-        });
-    }
-
-    function checkSequence() {
-        if (buffer.join(" ") === requiredSequence.join(" ")) {
-            alert("Sequence matched! Hacking successful.");
+    for (let i = 1; i < 5; i++) {
+        let row, col;
+        if (i % 2 === 0) {
+            row = Math.floor(Math.random() * 6);
+            col = previousCol;
         } else {
-            alert("Sequence mismatch! Hacking failed.");
+            row = previousRow;
+            col = Math.floor(Math.random() * 6);
         }
-        resetGame();
+        sequenceToWin.push([row, col]);
+        previousRow = row;
+        previousCol = col;
     }
 
-    function resetGame() {
-        buffer = [];
-        currentRow = 0;
-        currentCol = 0;
-        isVertical = false;
-        generateRandomSequence();
-        generateSolvableMatrix();
-        createMatrix();
-        updateBufferDisplay();
+    let sequenceValues = sequenceToWin.map(([row, col]) => gridValues[row][col]);
+    let valueCounts = {};
+    for (let value of sequenceValues) {
+        valueCounts[value] = (valueCounts[value] || 0) + 1;
     }
 
-    resetGame();
+    for (let value in valueCounts) {
+        if (valueCounts[value] > 1) {
+            let gridOccurrences = gridValues.flat().filter(v => v === value).length;
+            if (gridOccurrences < valueCounts[value]) {
+                generateSequence();
+                return;
+            }
+        }
+    }
 
-    document.addEventListener("keydown", handleKeyPress);
-});
+    displaySequence();
+}
+
+function displaySequence() {
+    sequenceContainer.innerHTML = "<strong>Sequence Required:</strong><br>" +
+        sequenceToWin.map(([row, col]) => gridContainer.children[row * 6 + col].textContent).join(" -> ");
+}
+
+function clearHighlights() {
+    document.querySelectorAll('.row-highlight, .col-highlight').forEach(element => {
+        element.classList.remove('row-highlight', 'col-highlight');
+    });
+}
+
+function highlightRowOrColumn() {
+    clearHighlights();
+    if (canMoveVertically) {
+        for (let i = 0; i < 6; i++) {
+            document.querySelector(`[data-row="${i}"][data-col="${highlightedCol}"]`).classList.add('col-highlight');
+        }
+    } else if (canMoveHorizontally) {
+        for (let i = 0; i < 6; i++) {
+            document.querySelector(`[data-row="${highlightedRow}"][data-col="${i}"]`).classList.add('row-highlight');
+        }
+    }
+}
+
+function moveHighlight(row, col) {
+    document.querySelector('.highlighted').classList.remove('highlighted');
+    highlightedRow = row;
+    highlightedCol = col;
+    document.querySelector(`[data-row="${row}"][data-col="${col}"]`).classList.add('highlighted');
+    highlightRowOrColumn();
+}
+
+function handleKeydown(event) {
+    if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+        if (canMoveVertically) {
+            const newRow = (highlightedRow + (event.key === 'ArrowUp' ? -1 : 1) + 6) % 6;
+            moveHighlight(newRow, highlightedCol);
+        }
+    } else if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+        if (canMoveHorizontally) {
+            const newCol = (highlightedCol + (event.key === 'ArrowLeft' ? -1 : 1) + 6) % 6;
+            moveHighlight(highlightedRow, newCol);
+        }
+    } else if (event.key === 'Enter') {
+        checkSelection(highlightedRow, highlightedCol);
+    }
+}
+
+function checkSelection(row, col) {
+    const [expectedRow, expectedCol] = sequenceToWin[currentStep];
+    if (row === expectedRow && col === expectedCol) {
+        sequence.push({ row, col });
+        currentStep++;
+        if (currentStep === sequenceToWin.length) {
+            messageDiv.textContent = 'You won!';
+            clearInterval(timer);
+        } else {
+            canMoveVertically = !canMoveVertically;
+            canMoveHorizontally = !canMoveHorizontally;
+            highlightRowOrColumn();
+        }
+    } else {
+        messageDiv.textContent = 'Wrong selection! Try again.';
+    }
+}
+
+function updateTimer() {
+    timeLeft--;
+    timerDiv.textContent = `Time Left: ${timeLeft} seconds`;
+    if (timeLeft <= 0) {
+        clearInterval(timer);
+        messageDiv.textContent = 'Time is up! You lost!';
+        document.removeEventListener('keydown', handleKeydown);
+        clearHighlights();
+    }
+}
+
+function startGame() {
+    gridContainer.classList.remove('hidden');
+    document.querySelectorAll('.grid-item').forEach(item => item.classList.remove('hidden'));
+
+    highlightedRow = sequenceToWin[0][0];
+    highlightedCol = sequenceToWin[0][1];
+    document.querySelector(`[data-row="${highlightedRow}"][data-col="${highlightedCol}"]`).classList.add('highlighted');
+
+    timeLeft = 20;
+    timerDiv.textContent = `Time Left: ${timeLeft} seconds`;
+    clearInterval(timer);
+    timer = setInterval(updateTimer, 1000);
+
+    startButton.disabled = true;
+
+    highlightRowOrColumn();
+}
+
+function initializeGame() {
+    createGrid();
+    generateSequence();
+    displaySequence();
+
+    gridContainer.classList.add('hidden');
+    startButton.disabled = false;
+}
+
+initializeGame();
+
+startButton.addEventListener('click', startGame);
+document.addEventListener('keydown', handleKeydown);

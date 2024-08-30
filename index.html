@@ -3,26 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Breach Protocol Minigame</title>
+    <title>Cyberpunk Breach Protocol</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="breach-protocol">
-        <div class="matrix-container">
-            <table id="codeMatrix">
-            </table>
-        </div>
-        <div class="info-panel">
-            <div class="sequence">
-                <h3>Sequence Required to Upload</h3>
-                <div id="sequence">55 55 BD 55</div>
-            </div>
-            <div class="buffer">
-                <h3>Buffer</h3>
-                <div id="buffer"></div>
-            </div>
-        </div>
+    <div class="container">
+        <div id="grid-container" class="hidden"></div>
+        <div id="sequence-container"></div>
     </div>
+    <div id="timer"></div>
+    <button id="start-button">Start Game</button>
+    <div id="message"></div>
     <script src="script.js"></script>
 </body>
 </html>
