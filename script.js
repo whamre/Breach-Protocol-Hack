@@ -131,7 +131,7 @@ function generateSequence(attempt = 1) {
 
 function displaySequence() {
     sequenceContainer.innerHTML = "<strong>Sequence Required:</strong><br>" +
-        sequenceToWin.map(([row, col]) => gridContainer.children[row * GRID_SIZE + col].textContent).join(" -> ");
+        sequenceToWin.map(([row, col]) => gridContainer.children[row * GRID_SIZE + col].textContent).join(" | ");
 }
 
 function clearHighlights() {
