@@ -1,66 +1,9 @@
 body {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
-    margin: 0;
     font-family: Arial, sans-serif;
+    text-align: center;
     background-color: #0d0f12;
-    color: #8fd6d4;
-}
-
-#container {
-    display: flex;
-    flex-direction: row;
-    align-items: flex-start;
-    gap: 20px;
-}
-
-#grid-container {
-    display: grid;
-    grid-template-columns: repeat(6, 50px);
-    grid-template-rows: repeat(6, 50px);
-    gap: 5px;
-    margin-bottom: 20px;
-    background-color: #101215;
-    padding: 10px;
-}
-
-.grid-item {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: #1b1e23;
-    border: 2px solid #2b2e35;
-    font-size: 20px;
-    color: #8fd6d4;
-    cursor: pointer;
-}
-
-.highlighted {
-    border-color: #a8e600;
-}
-
-#sequence-container {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    background-color: #1b1e23;
-    padding: 10px;
-    border: 2px solid #2b2e35;
-    font-size: 18px;
-    height: 20%;
-}
-
-#message {
-    font-size: 18px;
-    color: #e60000;
-    margin-top: 20px;
-}
-
-.hidden {
-    display: none;
+    color: #ffffff;
+    padding: 20px;
 }
 
 #symbol-selector {
@@ -102,17 +45,53 @@ body {
     cursor: not-allowed;
 }
 
-.main-container{
-    display: flex;
-    flex-direction: row;
-    gap: 20px;
+#grid-container {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 5px;
+    margin: 20px auto;
+    max-width: 500px;
+}
+
+.grid-item {
+    background-color: #1c1e22;
+    border: 2px solid #3a3d42;
+    padding: 15px;
+    font-size: 18px;
+    color: #a8e6ff;
+    text-align: center;
+    border-radius: 5px;
+}
+
+.grid-item.highlighted {
+    border-color: #a8e600;
+    background-color: rgba(255, 255, 0, 0.5);
 }
 
 .row-highlight, .col-highlight {
     background-color: rgba(255, 255, 0, 0.2);
 }
 
-.grid-item.highlighted {
-    border-color: #a8e600;
-    background-color: rgba(255, 255, 0, 0.5);
+#sequence-container {
+    margin: 20px auto;
+    max-width: 600px;
+    font-size: 18px;
+}
+
+#timer {
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+#message {
+    margin-top: 20px;
+    font-size: 18px;
+}
+
+#message.error {
+    color: red;
+}
+
+.hidden {
+    display: none;
 }

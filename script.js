@@ -18,6 +18,8 @@ let timer;
 let timeLeft = 20;
 const MAX_REGENERATE_ATTEMPTS = 10;
 
+const GRID_SIZE = 8;
+
 const alphanumeric = '123456789ABCDEF'.split('');
 const brailleAlphabet = [
     '⠁', '⠂', '⠃', '⠄', '⠅', '⠆', '⠇', '⠈',
@@ -44,9 +46,9 @@ function createGrid() {
     gridContainer.innerHTML = '';
     gridValues = [];
 
-    for (let row = 0; row < 6; row++) {
+    for (let row = 0; row < GRID_SIZE; row++) { 
         let rowValues = [];
-        for (let col = 0; col < 6; col++) {
+        for (let col = 0; col < GRID_SIZE; col++) {
             const div = document.createElement('div');
             div.classList.add('grid-item');
             div.dataset.row = row;
@@ -90,18 +92,18 @@ function generateSequence(attempt = 1) {
     }
 
     sequenceToWin = [];
-    let previousRow = Math.floor(Math.random() * 6);
-    let previousCol = Math.floor(Math.random() * 6);
+    let previousRow = Math.floor(Math.random() * GRID_SIZE);
+    let previousCol = Math.floor(Math.random() * GRID_SIZE);
     sequenceToWin.push([previousRow, previousCol]);
 
     for (let i = 1; i < 5; i++) {
         let row, col;
         if (i % 2 === 0) {
-            row = Math.floor(Math.random() * 6);
+            row = Math.floor(Math.random() * GRID_SIZE); 
             col = previousCol;
         } else {
             row = previousRow;
-            col = Math.floor(Math.random() * 6);
+            col = Math.floor(Math.random() * GRID_SIZE);
         }
         sequenceToWin.push([row, col]);
         previousRow = row;
@@ -129,7 +131,7 @@ function generateSequence(attempt = 1) {
 
 function displaySequence() {
     sequenceContainer.innerHTML = "<strong>Sequence Required:</strong><br>" +
-        sequenceToWin.map(([row, col]) => gridContainer.children[row * 6 + col].textContent).join(" -> ");
+        sequenceToWin.map(([row, col]) => gridContainer.children[row * GRID_SIZE + col].textContent).join(" -> ");
 }
 
 function clearHighlights() {
@@ -141,11 +143,11 @@ function clearHighlights() {
 function highlightRowOrColumn() {
     clearHighlights();
     if (canMoveVertically) {
-        for (let i = 0; i < 6; i++) {
+        for (let i = 0; i < GRID_SIZE; i++) {
             document.querySelector(`[data-row="${i}"][data-col="${highlightedCol}"]`).classList.add('col-highlight');
         }
     } else if (canMoveHorizontally) {
-        for (let i = 0; i < 6; i++) {
+        for (let i = 0; i < GRID_SIZE; i++) { 
             document.querySelector(`[data-row="${highlightedRow}"][data-col="${i}"]`).classList.add('row-highlight');
         }
     }
@@ -162,12 +164,12 @@ function moveHighlight(row, col) {
 function handleKeydown(event) {
     if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
         if (canMoveVertically) {
-            const newRow = (highlightedRow + (event.key === 'ArrowUp' ? -1 : 1) + 6) % 6;
+            const newRow = (highlightedRow + (event.key === 'ArrowUp' ? -1 : 1) + GRID_SIZE) % GRID_SIZE;
             moveHighlight(newRow, highlightedCol);
         }
     } else if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
         if (canMoveHorizontally) {
-            const newCol = (highlightedCol + (event.key === 'ArrowLeft' ? -1 : 1) + 6) % 6;
+            const newCol = (highlightedCol + (event.key === 'ArrowLeft' ? -1 : 1) + GRID_SIZE) % GRID_SIZE;
             moveHighlight(highlightedRow, newCol);
         }
     } else if (event.key === 'Enter') {
@@ -183,13 +185,24 @@ function checkSelection(row, col) {
         if (currentStep === sequenceToWin.length) {
             messageDiv.textContent = 'You won!';
             clearInterval(timer);
+            document.removeEventListener('keydown', handleKeydown);
+            startButton.disabled = false;
         } else {
             canMoveVertically = !canMoveVertically;
             canMoveHorizontally = !canMoveHorizontally;
             highlightRowOrColumn();
         }
     } else {
-        messageDiv.textContent = 'Wrong selection! Try again.';
+        messageDiv.textContent = 'Wrong selection! You lost!';
+        messageDiv.classList.add('error');
+        clearInterval(timer);
+        document.removeEventListener('keydown', handleKeydown);
+        clearHighlights();
+
+        setTimeout(() => {
+            gridContainer.style.display = 'none';
+            startButton.disabled = false;
+        }, 2000);
     }
 }
 
@@ -199,14 +212,24 @@ function updateTimer() {
     if (timeLeft <= 0) {
         clearInterval(timer);
         messageDiv.textContent = 'Time is up! You lost!';
+        messageDiv.classList.add('error');
         document.removeEventListener('keydown', handleKeydown);
         clearHighlights();
+
+        setTimeout(() => {
+            gridContainer.style.display = 'none';
+            startButton.disabled = false;
+        }, 2000);
     }
 }
 
 function startGame() {
-    gridContainer.classList.remove('hidden');
+    initializeGame();
+
+    gridContainer.style.display = 'grid';
     document.querySelectorAll('.grid-item').forEach(item => item.classList.remove('hidden'));
+
+    sequenceContainer.classList.add('hidden');
 
     highlightedRow = sequenceToWin[0][0];
     highlightedCol = sequenceToWin[0][1];
@@ -220,6 +243,8 @@ function startGame() {
     startButton.disabled = true;
 
     highlightRowOrColumn();
+
+    document.addEventListener('keydown', handleKeydown);
 }
 
 function initializeGame() {
@@ -227,7 +252,10 @@ function initializeGame() {
     generateSequence();
     displaySequence();
 
-    gridContainer.classList.add('hidden');
+    gridContainer.style.display = 'none';
+    sequenceContainer.classList.remove('hidden');
+    messageDiv.textContent = '';
+    messageDiv.classList.remove('error');
     startButton.disabled = false;
 }
 
