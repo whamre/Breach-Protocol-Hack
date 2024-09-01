@@ -42,6 +42,19 @@ const symbolsAlphabet = [
     '☧', '☨', '☩', '☪', '☫', '☬', '☭', '☮'
 ];
 
+function resetGameState() {
+    sequence = [];
+    currentStep = 0;
+    highlightedRow = 0;
+    highlightedCol = 0;
+    canMoveVertically = true;
+    canMoveHorizontally = false;
+    sequenceToWin = [];
+    gridValues = [];
+    timeLeft = 20;
+    clearInterval(timer);
+}
+
 function createGrid() {
     gridContainer.innerHTML = '';
     gridValues = [];
@@ -108,6 +121,7 @@ symbolButtons.forEach(button => {
                 currentAlphabet = symbolsAlphabet;
                 break;
         }
+        resetGameState();
         initializeGame();
         startButton.disabled = false;
     });
@@ -165,7 +179,14 @@ function checkSelection(row, col) {
             messageDiv.textContent = 'You won!';
             clearInterval(timer);
             document.removeEventListener('keydown', handleKeydown);
-            startButton.disabled = false;
+            clearHighlights();
+
+            setTimeout(() => {
+                gridContainer.style.display = 'none';
+                startButton.disabled = true;
+                timerDiv.style.display = 'none';
+            }, 2000);
+
         } else {
             canMoveVertically = !canMoveVertically;
             canMoveHorizontally = !canMoveHorizontally;
@@ -180,7 +201,8 @@ function checkSelection(row, col) {
 
         setTimeout(() => {
             gridContainer.style.display = 'none';
-            startButton.disabled = false;
+            startButton.disabled = true;
+            timerDiv.style.display = 'none';
         }, 2000);
     }
 }
@@ -212,7 +234,7 @@ function startGame() {
     highlightedCol = sequenceToWin[0][1];
     document.querySelector(`[data-row="${highlightedRow}"][data-col="${highlightedCol}"]`).classList.add('highlighted');
 
-    timeLeft = 20;
+    timerDiv.style.display = 'block';
     timerDiv.textContent = `Time Left: ${timeLeft} seconds`;
     clearInterval(timer);
     timer = setInterval(updateTimer, 1000);
